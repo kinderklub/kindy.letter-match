@@ -1,0 +1,1706 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Padankan Huruf - Kindy Klub</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Quicksand -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      font-family: 'Quicksand', sans-serif !important;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+      box-sizing: border-box;
+    }
+
+    body {
+      touch-action: manipulation;
+      overflow-x: hidden;
+      background-color: #e0f2fe;
+    }
+
+    /* PENGASINGAN SKRIN MUTLAK (ABSOLUTE SCREEN ISOLATION) */
+    .screen-section {
+      display: none !important;
+    }
+    .screen-section.active-screen {
+      display: flex !important;
+    }
+
+    /* SVG Background Layers */
+    .bg-svg-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ======================================================= */
+    /* KAWALAN BUTANG PILIHAN - KONTRAST TINGGI & KALIS MOBILE */
+    /* ======================================================= */
+    
+    /* 1. Mode Buttons (Mod Padanan) */
+    .mode-btn {
+      background-color: #ffffff;
+      border: 2px solid #c7d2fe;
+      color: #1e1b4b !important;
+      transition: all 0.15s ease;
+    }
+    .mode-btn span:first-child {
+      color: #1e1b4b !important;
+    }
+    .mode-btn span:last-child {
+      color: #64748b !important;
+    }
+    .mode-btn.active {
+      background-color: #6366f1 !important;
+      border-color: #4338ca !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 10px rgba(99, 102, 241, 0.35) !important;
+    }
+    .mode-btn.active span:first-child {
+      color: #ffffff !important;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+    .mode-btn.active span:last-child {
+      color: #ffffff !important;
+      opacity: 0.95;
+    }
+
+    /* 2. Level Buttons (Tahap Kesukaran) */
+    .level-btn {
+      background-color: #ffffff;
+      border: 2px solid #c7d2fe;
+      color: #1e1b4b !important;
+      transition: all 0.15s ease;
+    }
+    .level-btn span:first-child {
+      color: #1e1b4b !important;
+    }
+    .level-btn span:last-child {
+      color: #64748b !important;
+    }
+    .level-btn.active {
+      background-color: #10b981 !important;
+      border-color: #047857 !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.35) !important;
+    }
+    .level-btn.active span:first-child {
+      color: #ffffff !important;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+    .level-btn.active span:last-child {
+      color: #f0fdf4 !important;
+      opacity: 0.95;
+    }
+
+    /* 3. Session Buttons (Bilangan Soalan) */
+    .session-btn {
+      background-color: #ffffff;
+      border: 2px solid #c7d2fe;
+      color: #1e1b4b !important;
+      transition: all 0.15s ease;
+    }
+    .session-btn.active {
+      background-color: #f59e0b !important;
+      border-color: #b45309 !important;
+      color: #451a03 !important;
+      box-shadow: 0 4px 10px rgba(245, 158, 11, 0.35) !important;
+      font-weight: 900 !important;
+    }
+
+    /* Letter Tile Styling - ALMOST SQUARE & 100% SOLID SPRINKLES */
+    .letter-tile {
+      opacity: 1 !important;
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease;
+      touch-action: none;
+    }
+    .letter-tile:active, .letter-tile.dragging {
+      transform: scale(1.08) rotate(-1.5deg);
+      z-index: 40;
+    }
+    .letter-tile.matched {
+      transform: scale(0.97);
+      cursor: default;
+      opacity: 1 !important;
+    }
+
+    /* Animations */
+    @keyframes gentle-bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    .animate-bounce-gentle {
+      animation: gentle-bounce 2.6s ease-in-out infinite;
+    }
+
+    @keyframes pulse-subtle {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.025); }
+    }
+    .animate-pulse-btn {
+      animation: pulse-subtle 2s ease-in-out infinite;
+    }
+
+    /* Line Animation for SVG */
+    @keyframes dash {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+    .permanent-line {
+      stroke-dasharray: 1200;
+      stroke-dashoffset: 1200;
+      animation: dash 0.35s ease-out forwards;
+    }
+
+    /* Custom Scrollbar for Phone Friendliness */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.4);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #a5b4fc;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between relative selection:bg-amber-200">
+
+  <!-- ========================================== -->
+  <!-- REAL EMBEDDED ANIMATED SVG BACKGROUND      -->
+  <!-- "Magical Letter Garden" Theme              -->
+  <!-- ========================================== -->
+  <div class="bg-svg-container">
+    <svg class="w-full h-full" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#bae6fd" />
+          <stop offset="65%" stop-color="#e0f2fe" />
+          <stop offset="100%" stop-color="#f0fdf4" />
+        </linearGradient>
+
+        <linearGradient id="hillBackGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#86efac" />
+          <stop offset="100%" stop-color="#4ade80" />
+        </linearGradient>
+
+        <linearGradient id="hillFrontGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#4ade80" />
+          <stop offset="100%" stop-color="#22c55e" />
+        </linearGradient>
+
+        <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="8" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+
+      <!-- Sky Base -->
+      <rect width="1200" height="800" fill="url(#skyGrad)" />
+
+      <!-- Glowing Sun -->
+      <g transform="translate(1020, 110)">
+        <circle r="60" fill="#fef08a" opacity="0.6" filter="url(#softGlow)">
+          <animate attributeName="r" values="55;65;55" dur="4s" repeatCount="indefinite" />
+        </circle>
+        <circle r="44" fill="#fde047" />
+        <circle r="36" fill="#facc15" />
+      </g>
+
+      <!-- Animated Cloud 1 -->
+      <g fill="#ffffff" opacity="0.88">
+        <path d="M 0 130 Q 30 100 70 120 Q 110 90 150 120 Q 180 135 170 160 Q 150 180 80 175 Q 10 180 0 130 Z" />
+        <animateTransform attributeName="transform" type="translate" values="-220, 40; 1250, 40" dur="42s" repeatCount="indefinite" />
+      </g>
+
+      <!-- Animated Cloud 2 -->
+      <g fill="#ffffff" opacity="0.75">
+        <path d="M 0 160 Q 35 120 85 145 Q 130 115 175 145 Q 215 160 200 195 Q 180 220 95 215 Q 15 220 0 160 Z" />
+        <animateTransform attributeName="transform" type="translate" values="1250, 95; -240, 95" dur="58s" repeatCount="indefinite" />
+      </g>
+
+      <!-- Rolling Hills (Back) -->
+      <path d="M -50 560 Q 250 430 600 520 T 1250 490 L 1250 850 L -50 850 Z" fill="url(#hillBackGrad)" />
+
+      <!-- Rolling Hills (Front) -->
+      <path d="M -50 640 Q 280 540 680 610 T 1250 590 L 1250 850 L -50 850 Z" fill="url(#hillFrontGrad)" />
+
+      <!-- Swaying Fantasy Flowers -->
+      <g transform="translate(120, 680)">
+        <path d="M 0 0 Q 8 -40 2 -80" stroke="#15803d" stroke-width="7" stroke-linecap="round" fill="none" />
+        <circle cx="2" cy="-85" r="22" fill="#fe51b0" />
+        <circle cx="2" cy="-85" r="11" fill="#fde047" />
+        <animateTransform attributeName="transform" type="rotate" values="-4 120 680; 5 120 680; -4 120 680" dur="5s" repeatCount="indefinite" />
+      </g>
+
+      <g transform="translate(1080, 690)">
+        <path d="M 0 0 Q -10 -45 -4 -90" stroke="#15803d" stroke-width="7" stroke-linecap="round" fill="none" />
+        <circle cx="-4" cy="-95" r="25" fill="#07bdff" />
+        <circle cx="-4" cy="-95" r="12" fill="#ffffff" />
+        <animateTransform attributeName="transform" type="rotate" values="5 1080 690; -6 1080 690; 5 1080 690" dur="4.2s" repeatCount="indefinite" />
+      </g>
+
+      <!-- Floating Alphabet Bubbles with <animate> -->
+      <g transform="translate(180, 320)">
+        <circle r="22" fill="#e2c1f3" opacity="0.6" />
+        <text y="7" text-anchor="middle" font-size="20" font-weight="900" fill="#6b21a8">A</text>
+        <animateTransform attributeName="transform" type="translate" values="180, 340; 180, 310; 180, 340" dur="4.5s" repeatCount="indefinite" />
+      </g>
+
+      <g transform="translate(980, 270)">
+        <circle r="20" fill="#f5e45f" opacity="0.6" />
+        <text y="7" text-anchor="middle" font-size="18" font-weight="900" fill="#854d0e">b</text>
+        <animateTransform attributeName="transform" type="translate" values="980, 260; 980, 290; 980, 260" dur="3.8s" repeatCount="indefinite" />
+      </g>
+
+      <!-- Twinkling Sparkles -->
+      <g transform="translate(340, 220)">
+        <path d="M 0 -12 L 3 -3 L 12 0 L 3 3 L 0 12 L -3 3 L -12 0 L -3 -3 Z" fill="#fde047">
+          <animate attributeName="opacity" values="0.2;1;0.2" dur="2.4s" repeatCount="indefinite" />
+          <animateTransform attributeName="transform" type="scale" values="0.8;1.3;0.8" dur="2.4s" repeatCount="indefinite" />
+        </path>
+      </g>
+      <g transform="translate(860, 380)">
+        <path d="M 0 -10 L 2.5 -2.5 L 10 0 L 2.5 2.5 L 0 10 L -2.5 2.5 L -10 0 L -2.5 -2.5 Z" fill="#ffffff">
+          <animate attributeName="opacity" values="0.1;0.9;0.1" dur="2s" repeatCount="indefinite" />
+        </path>
+      </g>
+    </svg>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MAIN APP WRAPPER                           -->
+  <!-- ========================================== -->
+  <div class="relative z-10 w-full max-w-md mx-auto flex-1 flex flex-col justify-between p-3 sm:p-4">
+    
+    <!-- TOP NAVIGATION & BRANDING BAR -->
+    <header class="w-full flex items-center justify-between gap-2 mb-2">
+      <!-- Brand Badge (Kindy Klub) -->
+      <div class="inline-flex items-center gap-1.5 bg-white/95 px-3 py-1.5 rounded-full shadow-sm border-2 border-indigo-100">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="text-xs font-black tracking-wide text-indigo-950 uppercase">KINDY KLUB</span>
+      </div>
+
+      <!-- Controls: Language Toggle [BM | EN] & Sound -->
+      <div class="flex items-center gap-1.5">
+        <!-- Segmented Bilingual Buttons -->
+        <div class="inline-flex bg-white/95 p-1 rounded-2xl border-2 border-indigo-100 shadow-sm">
+          <button id="btnLangBM" type="button" onclick="setLanguage('ms')" class="px-2.5 py-1 text-xs font-black rounded-xl transition-all bg-amber-400 text-amber-950 shadow-sm">
+            BM
+          </button>
+          <button id="btnLangEN" type="button" onclick="setLanguage('en')" class="px-2.5 py-1 text-xs font-black rounded-xl transition-all text-slate-600 hover:text-indigo-900">
+            EN
+          </button>
+        </div>
+
+        <!-- Audio Mute/Unmute Button -->
+        <button id="btnAudioToggle" type="button" onclick="toggleAudio()" class="w-9 h-9 bg-white/95 rounded-2xl border-2 border-indigo-100 shadow-sm flex items-center justify-center text-indigo-900 active:scale-95 transition-transform" aria-label="Audio Toggle">
+          <svg id="iconSoundOn" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+          </svg>
+          <svg id="iconSoundOff" class="w-5 h-5 hidden text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z M17 14l4-4m0 4l-4-4" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ========================================== -->
+    <!-- SCREEN 1: HOME SCREEN (STANDALONE)         -->
+    <!-- ========================================== -->
+    <main id="screenHome" class="screen-section active-screen w-full flex-1 flex-col items-center justify-start space-y-2.5 overflow-y-auto pb-4">
+      
+      <!-- Mascot (Chibi Capybara SVG) -->
+      <div class="relative flex flex-col items-center mt-1">
+        <div class="w-24 h-24 sm:w-28 sm:h-28 animate-bounce-gentle filter drop-shadow-lg">
+          <svg viewBox="0 0 120 120" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="60" cy="74" rx="36" ry="34" fill="#a06846" />
+            <ellipse cx="60" cy="80" rx="24" ry="22" fill="#c48a60" />
+            <circle cx="34" cy="42" r="10" fill="#78482d" />
+            <circle cx="34" cy="42" r="5" fill="#e0a980" />
+            <circle cx="86" cy="42" r="10" fill="#78482d" />
+            <circle cx="86" cy="42" r="5" fill="#e0a980" />
+            <ellipse cx="60" cy="56" rx="30" ry="26" fill="#a06846" />
+            <ellipse cx="60" cy="64" rx="16" ry="12" fill="#78482d" />
+            <ellipse cx="56" cy="61" rx="2" ry="3" fill="#382012" />
+            <ellipse cx="64" cy="61" rx="2" ry="3" fill="#382012" />
+            <path d="M 57 66 Q 60 69 63 66" stroke="#382012" stroke-width="2" stroke-linecap="round" fill="none" />
+            <circle cx="48" cy="52" r="3.5" fill="#2d170b" />
+            <circle cx="49" cy="50.5" r="1.2" fill="#ffffff" />
+            <circle cx="72" cy="52" r="3.5" fill="#2d170b" />
+            <circle cx="73" cy="50.5" r="1.2" fill="#ffffff" />
+            <ellipse cx="40" cy="58" rx="5" ry="3" fill="#fe51b0" opacity="0.6" />
+            <ellipse cx="80" cy="58" rx="5" ry="3" fill="#fe51b0" opacity="0.6" />
+            <circle cx="60" cy="30" r="9" fill="#fd7a39" />
+            <ellipse cx="60" cy="22" rx="4" ry="2" fill="#15803d" />
+            <ellipse cx="45" cy="100" rx="9" ry="6" fill="#78482d" />
+            <ellipse cx="75" cy="100" rx="9" ry="6" fill="#78482d" />
+          </svg>
+        </div>
+        <!-- Speech Bubble -->
+        <div class="mt-1 bg-amber-400 text-amber-950 font-black text-[11px] px-3 py-0.5 rounded-full border-2 border-white shadow-sm">
+          <span id="mascotGreeting">Hai Kawan!</span>
+        </div>
+      </div>
+
+      <!-- Game Title Card -->
+      <div class="bg-white/95 rounded-3xl p-3 border-4 border-amber-300 shadow-md text-center w-full">
+        <h1 id="txtTitle" class="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-pink-500 to-indigo-600">
+          Padankan Huruf
+        </h1>
+        <p id="txtSubtitle" class="text-xs sm:text-sm font-bold text-slate-600 mt-0.5 leading-snug">
+          Tarik dan sambungkan huruf yang sama dalam taman ajaib!
+        </p>
+      </div>
+
+      <!-- Settings & Options Container -->
+      <div class="bg-white/95 rounded-3xl p-3.5 border-2 border-indigo-100 shadow-md w-full space-y-3">
+        
+        <!-- 1. Matching Mode Selector -->
+        <div>
+          <label id="lblMode" class="block text-[11px] font-black text-indigo-900 uppercase tracking-wider mb-1.5">
+            Mod Padanan
+          </label>
+          <div class="grid grid-cols-4 gap-1.5">
+            <button type="button" class="mode-btn font-black text-xs py-2 px-1 rounded-2xl shadow-sm transition-all" data-mode="upper-upper">
+              <span class="block text-sm font-black">A &rarr; A</span>
+              <span class="text-[9px] font-extrabold block truncate" data-i18n="modeUpperUpper">Besar-Besar</span>
+            </button>
+            <button type="button" class="mode-btn font-black text-xs py-2 px-1 rounded-2xl shadow-sm transition-all" data-mode="lower-lower">
+              <span class="block text-sm font-black">a &rarr; a</span>
+              <span class="text-[9px] font-extrabold block truncate" data-i18n="modeLowerLower">Kecil-Kecil</span>
+            </button>
+            <button type="button" class="mode-btn font-black text-xs py-2 px-1 rounded-2xl shadow-sm transition-all" data-mode="upper-lower">
+              <span class="block text-sm font-black">A &rarr; a</span>
+              <span class="text-[9px] font-extrabold block truncate" data-i18n="modeUpperLower">Besar-Kecil</span>
+            </button>
+            <button type="button" class="mode-btn font-black text-xs py-2 px-1 rounded-2xl shadow-sm transition-all" data-mode="mixed">
+              <span class="block text-sm font-black truncate" data-i18n="modeMixedTitle">&#x2605; Campur</span>
+              <span class="text-[9px] font-extrabold block truncate" data-i18n="modeMixedSub">Semua</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Difficulty Level Selector (Easy vs Pro) -->
+        <div class="pt-2 border-t border-slate-100">
+          <label id="lblLevel" class="block text-[11px] font-black text-indigo-900 uppercase tracking-wider mb-1.5">
+            Tahap Kesukaran
+          </label>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" class="level-btn font-black text-xs py-2 px-2 rounded-2xl shadow-sm transition-all flex flex-col items-center justify-center" data-level="easy">
+              <span class="text-xs font-black" data-i18n="levelEasyTitle">Mudah (Easy)</span>
+              <span class="text-[10px] font-extrabold block truncate" data-i18n="levelEasySub">Warna tab sama</span>
+            </button>
+            <button type="button" class="level-btn font-black text-xs py-2 px-2 rounded-2xl shadow-sm transition-all flex flex-col items-center justify-center" data-level="pro">
+              <span class="text-xs font-black" data-i18n="levelProTitle">Pakar (Pro)</span>
+              <span class="text-[10px] font-extrabold block truncate" data-i18n="levelProSub">Warna berbeza</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. Bilangan Soalan Selector (5, 10, 20, Bebas) -->
+        <div class="pt-2 border-t border-slate-100">
+          <div class="flex items-center justify-between mb-1.5">
+            <label id="lblSession" class="text-[11px] font-black text-indigo-900 uppercase tracking-wider">
+              Bilangan Soalan
+            </label>
+            <span class="text-[10px] text-slate-400 font-bold" id="lblSessionSub">3–4 huruf setiap soalan</span>
+          </div>
+          <div class="grid grid-cols-4 gap-1.5">
+            <button type="button" class="session-btn font-black text-xs py-1.5 rounded-xl shadow-sm transition-all" data-count="5">
+              5
+            </button>
+            <button type="button" class="session-btn font-black text-xs py-1.5 rounded-xl shadow-sm transition-all" data-count="10">
+              10
+            </button>
+            <button type="button" class="session-btn font-black text-xs py-1.5 rounded-xl shadow-sm transition-all" data-count="20">
+              20
+            </button>
+            <button type="button" class="session-btn font-black text-xs py-1.5 rounded-xl shadow-sm transition-all" data-count="free">
+              <span data-i18n="sessionFree">Bebas</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4. Student Profile (Nama Murid) -->
+        <div class="pt-2 border-t border-slate-100">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <span id="lblStudentName" class="text-xs font-black text-indigo-950 flex items-center gap-1">
+                <span class="text-amber-500">&#9733;</span> Nama Murid:
+              </span>
+              <span id="subStudentName" class="text-[10px] text-slate-400 font-bold block">Untuk pujian & rekod</span>
+            </div>
+            <input type="text" id="inputStudentName" maxlength="20" placeholder="cth: Adam / Zara"
+              class="w-36 sm:w-44 px-3 py-1.5 text-xs font-extrabold text-indigo-950 bg-amber-50 border-2 border-amber-300 rounded-xl focus:outline-none focus:border-amber-500 text-center placeholder-amber-400">
+          </div>
+        </div>
+
+        <!-- 5. Family Code (Pilihan) -->
+        <div class="pt-2 border-t border-slate-100">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <span id="lblFamilyCode" class="text-xs font-black text-indigo-950">Kod Keluarga (Pilihan):</span>
+              <span id="subFamilyCode" class="text-[10px] text-slate-400 font-bold block">Boleh dikosongkan</span>
+            </div>
+            <div class="relative w-36 sm:w-44">
+              <input type="text" id="inputFamilyCode" maxlength="15" placeholder=""
+                class="w-full px-3 py-1.5 text-xs font-extrabold text-indigo-950 bg-slate-50 border-2 border-indigo-200 rounded-xl focus:outline-none focus:border-indigo-400 text-center uppercase tracking-wider">
+              <button id="btnClearFamilyCode" type="button" class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 text-xs font-black">
+                &#10005;
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. Family Dashboard Button -->
+        <div class="pt-2 border-t border-slate-100">
+          <button id="btnOpenDashboard" type="button" onclick="showDashboard()"
+            class="w-full py-2 px-3 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 border-2 border-indigo-200 text-indigo-900 rounded-2xl flex items-center justify-between font-black text-xs shadow-sm transition-transform active:scale-98">
+            <span class="flex items-center gap-1.5">
+              <span>&#128202;</span>
+              <span id="txtDashboardBtnLabel">Papan Pemuka Keluarga</span>
+            </span>
+            <span class="text-[11px] font-bold text-indigo-600 bg-white px-2 py-0.5 rounded-lg border border-indigo-100">
+              <span id="txtDashboardBtnSub">Lihat Rekod</span> &rarr;
+            </span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- PRIMARY ACTION: BIG START PLAY BUTTON -->
+      <div class="w-full pt-1 space-y-2">
+        <button id="btnPlayNow" type="button" onclick="startGame()"
+          class="w-full py-3.5 bg-gradient-to-b from-emerald-400 to-emerald-500 hover:from-emerald-300 hover:to-emerald-400 text-white font-black text-lg sm:text-xl rounded-2xl border-b-4 border-emerald-700 shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2 transition-all transform active:translate-y-1 active:border-b-0 animate-pulse-btn">
+          <span>&#9658;</span>
+          <span id="txtPlayBtn">Mula Main!</span>
+        </button>
+
+        <!-- Tutorial / Instruction Button -->
+        <button type="button" onclick="showInstruction()"
+          class="w-full py-2 bg-white/90 hover:bg-white text-indigo-900 font-extrabold text-xs rounded-xl border-2 border-indigo-100 shadow-sm flex items-center justify-center gap-1.5 transition-colors">
+          <span>&#128161;</span>
+          <span id="txtHowToPlayBtn">Cara Main</span>
+        </button>
+      </div>
+
+    </main>
+
+    <!-- ========================================== -->
+    <!-- SCREEN 2: INSTRUCTION / TUTORIAL           -->
+    <!-- ========================================== -->
+    <main id="screenInstruction" class="screen-section w-full flex-1 flex-col items-center justify-between space-y-4">
+      <div class="w-full bg-white/95 rounded-3xl p-5 border-4 border-amber-300 shadow-lg text-center space-y-4 my-auto">
+        
+        <div class="w-20 h-20 mx-auto animate-bounce-gentle">
+          <svg viewBox="0 0 120 120" class="w-full h-full">
+            <ellipse cx="60" cy="74" rx="36" ry="34" fill="#a06846" />
+            <circle cx="34" cy="42" r="10" fill="#78482d" />
+            <circle cx="86" cy="42" r="10" fill="#78482d" />
+            <ellipse cx="60" cy="56" rx="30" ry="26" fill="#a06846" />
+            <ellipse cx="60" cy="64" rx="16" ry="12" fill="#78482d" />
+            <circle cx="48" cy="52" r="3.5" fill="#2d170b" />
+            <circle cx="72" cy="52" r="3.5" fill="#2d170b" />
+            <circle cx="60" cy="30" r="9" fill="#fd7a39" />
+          </svg>
+        </div>
+
+        <h2 id="txtInstrTitle" class="text-xl sm:text-2xl font-black text-indigo-950">
+          Cara Main
+        </h2>
+
+        <!-- Visual Sequence Illustration (Almost Square Blocks) -->
+        <div class="bg-indigo-50/80 rounded-2xl p-4 border-2 border-indigo-200 flex items-center justify-around relative">
+          <!-- Left Tile Sample -->
+          <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl border-4 border-[#b987db] bg-[#e2c1f3] flex items-center justify-center font-black text-3xl sm:text-4xl text-[#4a154b] shadow-md">
+            A
+          </div>
+
+          <!-- Animated Finger & Connecting Arrow -->
+          <div class="flex flex-col items-center">
+            <span class="text-2xl font-black text-indigo-500 animate-pulse">&rarr;</span>
+            <span class="text-xl animate-bounce">&#128070;</span>
+          </div>
+
+          <!-- Right Tile Sample -->
+          <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl border-4 border-[#b987db] bg-[#e2c1f3] flex items-center justify-center font-black text-3xl sm:text-4xl text-[#4a154b] shadow-md">
+            A
+          </div>
+        </div>
+
+        <p id="txtInstrDesc" class="text-sm font-extrabold text-slate-700 leading-relaxed px-2">
+          Tarik huruf di sebelah kiri ke huruf yang sama di sebelah kanan!
+        </p>
+
+        <button type="button" onclick="startGame()"
+          class="w-full py-3 bg-gradient-to-b from-emerald-400 to-emerald-500 text-white font-black text-base rounded-2xl border-b-4 border-emerald-700 shadow-md transition-all active:translate-y-1 active:border-b-0">
+          <span id="txtInstrStartBtn">Faham, Jom Mula!</span> &rarr;
+        </button>
+      </div>
+    </main>
+
+    <!-- ========================================== -->
+    <!-- SCREEN 3: GAMEPLAY SCREEN (ALMOST SQUARE)  -->
+    <!-- ========================================== -->
+    <main id="screenGame" class="screen-section w-full flex-1 flex-col justify-between">
+      
+      <!-- Top Gameplay Bar -->
+      <div class="w-full bg-white/95 rounded-2xl p-2.5 border-2 border-indigo-100 shadow-sm flex items-center justify-between mb-2">
+        <!-- Direct Exit Button -->
+        <button id="btnGameExit" type="button" onclick="exitGameToHome()" class="px-3 py-1.5 text-xs font-black text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition-all active:scale-95 flex items-center gap-1 shadow-sm">
+          <span>&larr;</span>
+          <span id="txtGameBack">Keluar</span>
+        </button>
+
+        <!-- Current Question Counter Display -->
+        <div class="flex items-center gap-1.5 bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-200">
+          <span class="text-indigo-600 font-black text-xs">&#127919;</span>
+          <span id="txtProgressVal" class="text-xs font-black text-indigo-950">Soalan 1 / 5</span>
+        </div>
+
+        <!-- Score Badge -->
+        <div class="flex items-center gap-1.5 bg-amber-100 px-3 py-1.5 rounded-xl border border-amber-300">
+          <span class="text-amber-500 font-black">&#9733;</span>
+          <span id="txtScoreVal" class="text-sm font-black text-amber-950">0</span>
+        </div>
+      </div>
+
+      <!-- Playfield Container with Absolute SVG Layer (Spacious & Vertically Balanced) -->
+      <div id="playfieldContainer" class="relative w-full flex-1 bg-white/70 rounded-3xl border-4 border-dashed border-indigo-200/80 p-3 sm:p-4 flex items-stretch justify-between touch-none select-none overflow-hidden min-h-[420px] sm:min-h-[460px]">
+        
+        <!-- SVG Connections Layer -->
+        <svg id="connectionsSvg" class="absolute inset-0 w-full h-full pointer-events-none z-20">
+          <!-- Permanent Connection Lines -->
+          <g id="permLinesGroup"></g>
+          <!-- Live Interactive Dragging Line -->
+          <line id="liveDragLine" class="hidden" x1="0" y1="0" x2="0" y2="0" stroke="#fd7a39" stroke-width="8" stroke-linecap="round" stroke-dasharray="8 8" />
+        </svg>
+
+        <!-- Left Letter Column (Distributed evenly with clear vertical spacing) -->
+        <div id="colLeft" class="flex flex-col justify-evenly items-center h-full min-h-[380px] sm:min-h-[420px] w-[38%] max-w-[125px] z-30 py-3 gap-4 sm:gap-6">
+          <!-- Dynamically populated (3 or 4 almost-square tiles) -->
+        </div>
+
+        <!-- Right Letter Column (Distributed evenly with clear vertical spacing) -->
+        <div id="colRight" class="flex flex-col justify-evenly items-center h-full min-h-[380px] sm:min-h-[420px] w-[38%] max-w-[125px] z-30 py-3 gap-4 sm:gap-6">
+          <!-- Dynamically populated (3 or 4 almost-square tiles) -->
+        </div>
+
+      </div>
+
+      <!-- Feedback Area & Cheer -->
+      <div class="w-full mt-2 h-9 flex items-center justify-center">
+        <div id="feedbackBubble" class="opacity-0 transition-all transform duration-200 px-4 py-1.5 rounded-full font-black text-xs sm:text-sm shadow-md bg-white border-2">
+          Hebat!
+        </div>
+      </div>
+
+    </main>
+
+    <!-- ========================================== -->
+    <!-- SCREEN 4: CELEBRATION RESULT SCREEN        -->
+    <!-- ========================================== -->
+    <main id="screenResult" class="screen-section w-full flex-1 flex-col items-center justify-center space-y-4">
+      <div class="w-full bg-white/95 rounded-3xl p-5 border-4 border-amber-300 shadow-xl text-center space-y-4 my-auto">
+        
+        <!-- Big Mascot Celebration -->
+        <div class="w-28 h-28 mx-auto animate-bounce filter drop-shadow-md">
+          <svg viewBox="0 0 120 120" class="w-full h-full">
+            <ellipse cx="60" cy="74" rx="36" ry="34" fill="#a06846" />
+            <circle cx="34" cy="42" r="10" fill="#78482d" />
+            <circle cx="86" cy="42" r="10" fill="#78482d" />
+            <ellipse cx="60" cy="56" rx="30" ry="26" fill="#a06846" />
+            <ellipse cx="60" cy="64" rx="16" ry="12" fill="#78482d" />
+            <circle cx="48" cy="52" r="3.5" fill="#2d170b" />
+            <circle cx="72" cy="52" r="3.5" fill="#2d170b" />
+            <polygon points="60,10 48,32 72,32" fill="#fe51b0" />
+            <circle cx="60" cy="10" r="4" fill="#facc15" />
+          </svg>
+        </div>
+
+        <h2 id="txtResultTitle" class="text-2xl font-black text-indigo-950">
+          Tahniah, Hebat!
+        </h2>
+        <p id="txtResultSub" class="text-xs font-bold text-slate-500">
+          Semua soalan berjaya diselesaikan dengan cemerlang!
+        </p>
+
+        <!-- Stats Display -->
+        <div class="bg-amber-50 rounded-2xl p-3 border-2 border-amber-200 grid grid-cols-3 gap-1 items-center text-center">
+          <div>
+            <span id="txtResultScoreLabel" class="text-[10px] font-black text-amber-900 block uppercase">Skor</span>
+            <span id="finalScoreVal" class="text-xl sm:text-2xl font-black text-amber-600">120</span>
+          </div>
+          <div class="border-x border-amber-200 px-1">
+            <span id="txtResultQuestionsLabel" class="text-[10px] font-black text-amber-900 block uppercase">Soalan</span>
+            <span id="finalQuestionsVal" class="text-xl sm:text-2xl font-black text-indigo-600">5 / 5</span>
+          </div>
+          <div>
+            <span id="txtResultMatchedLabel" class="text-[10px] font-black text-amber-900 block uppercase">Huruf</span>
+            <span id="finalMatchedVal" class="text-xl sm:text-2xl font-black text-emerald-600">18</span>
+          </div>
+        </div>
+
+        <div class="space-y-2 pt-2">
+          <button type="button" onclick="startGame()"
+            class="w-full py-3 bg-gradient-to-b from-emerald-400 to-emerald-500 text-white font-black text-base rounded-2xl border-b-4 border-emerald-700 shadow-md active:translate-y-1 active:border-b-0">
+            <span id="txtPlayAgainBtn">Main Lagi</span> &#8635;
+          </button>
+          <button type="button" onclick="showScreen('screenHome')"
+            class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs rounded-xl transition-colors">
+            <span id="txtBackHomeBtn">Kembali ke Menu</span>
+          </button>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- ========================================== -->
+    <!-- SCREEN 5: FAMILY DASHBOARD (REAL STATS)    -->
+    <!-- ========================================== -->
+    <main id="screenDashboard" class="screen-section w-full flex-1 flex-col justify-between space-y-3 overflow-y-auto">
+      
+      <!-- Dashboard Header -->
+      <div class="bg-white/95 rounded-2xl p-3 border-2 border-indigo-100 shadow-sm flex items-center justify-between">
+        <h2 id="txtDashHeader" class="text-base sm:text-lg font-black text-indigo-950 flex items-center gap-1.5">
+          <span>&#128202;</span> Papan Pemuka Keluarga
+        </h2>
+        <button type="button" onclick="showScreen('screenHome')"
+          class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs rounded-xl">
+          &larr; <span id="txtDashBack">Kembali</span>
+        </button>
+      </div>
+
+      <!-- Profile Summary Cards -->
+      <div class="grid grid-cols-2 gap-2">
+        <div class="bg-white/95 rounded-2xl p-2.5 border-2 border-indigo-100 shadow-sm">
+          <span id="lblDashStudent" class="text-[10px] font-black text-slate-400 block uppercase tracking-wider">Profil Murid</span>
+          <span id="valDashStudent" class="text-xs sm:text-sm font-black text-indigo-950 truncate block mt-0.5">Belum diisi</span>
+        </div>
+        <div class="bg-white/95 rounded-2xl p-2.5 border-2 border-indigo-100 shadow-sm">
+          <span id="lblDashFamily" class="text-[10px] font-black text-slate-400 block uppercase tracking-wider">Kod Keluarga</span>
+          <span id="valDashFamily" class="text-xs sm:text-sm font-black text-indigo-950 truncate block mt-0.5">Belum diisi</span>
+        </div>
+      </div>
+
+      <!-- Real Game Statistics -->
+      <div class="bg-white/95 rounded-3xl p-3.5 border-2 border-indigo-100 shadow-sm space-y-3">
+        <span id="lblDashStats" class="text-xs font-black text-indigo-900 uppercase tracking-wider block">Statistik Pembelajaran</span>
+        
+        <div class="grid grid-cols-2 gap-2">
+          <!-- Total Games -->
+          <div class="bg-indigo-50/70 p-2.5 rounded-2xl border border-indigo-100 text-center">
+            <span id="lblDashGames" class="text-[10px] font-black text-indigo-900 block">Permainan Dimainkan</span>
+            <span id="valDashGames" class="text-xl font-black text-indigo-600">0</span>
+          </div>
+          <!-- Highest Score -->
+          <div class="bg-amber-50/70 p-2.5 rounded-2xl border border-amber-100 text-center">
+            <span id="lblDashBest" class="text-[10px] font-black text-amber-900 block">Skor Terbaik</span>
+            <span id="valDashBest" class="text-xl font-black text-amber-600">0</span>
+          </div>
+          <!-- Questions Completed -->
+          <div class="bg-emerald-50/70 p-2.5 rounded-2xl border border-emerald-100 text-center">
+            <span id="lblDashQuestions" class="text-[10px] font-black text-emerald-900 block">Soalan Dijawab</span>
+            <span id="valDashQuestions" class="text-xl font-black text-emerald-600">0</span>
+          </div>
+          <!-- Correct Matches -->
+          <div class="bg-rose-50/70 p-2.5 rounded-2xl border border-rose-100 text-center">
+            <span id="lblDashCorrect" class="text-[10px] font-black text-rose-900 block">Huruf Dipadankan</span>
+            <span id="valDashCorrect" class="text-xl font-black text-rose-600">0</span>
+          </div>
+        </div>
+
+        <!-- Accuracy Bar -->
+        <div class="pt-1">
+          <div class="flex justify-between items-center text-xs font-black mb-1">
+            <span id="lblDashAccuracy" class="text-slate-600">Ketepatan Padanan</span>
+            <span id="valDashAccuracy" class="text-indigo-600">0%</span>
+          </div>
+          <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200">
+            <div id="barDashAccuracy" class="bg-gradient-to-r from-emerald-400 to-teal-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Completed Sessions -->
+      <div class="bg-white/95 rounded-3xl p-3.5 border-2 border-indigo-100 shadow-sm space-y-2 flex-1">
+        <span id="lblDashRecent" class="text-xs font-black text-indigo-900 uppercase tracking-wider block">Aktiviti Terkini</span>
+        <div id="dashRecentList" class="space-y-1.5 text-xs font-bold text-slate-600">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+    </main>
+
+    <!-- MANDATORY FOOTER -->
+    <footer class="w-full text-center py-2 text-[10px] sm:text-xs font-extrabold text-slate-500/90 tracking-wide mt-2">
+      Kinder Klub | All Rights Reserved
+    </footer>
+
+  </div>
+
+  <!-- ========================================== -->
+  <!-- JAVASCRIPT LOGIC (ROBUST & BULLETPROOF)    -->
+  <!-- ========================================== -->
+  <script>
+    // BILINGUAL LOCALIZATION STRINGS
+    const LOCALES = {
+      ms: {
+        gameTitle: "Padankan Huruf",
+        gameSubtitle: "Tarik dan sambungkan huruf yang sama dalam taman ajaib!",
+        mascotHi: "Hai Kawan!",
+        modeLabel: "Mod Padanan",
+        modeUpperUpper: "Besar-Besar",
+        modeLowerLower: "Kecil-Kecil",
+        modeUpperLower: "Besar-Kecil",
+        modeMixedTitle: "★ Campur",
+        modeMixedSub: "Semua",
+        modeMixed: "Semua",
+        levelLabel: "Tahap Kesukaran",
+        levelEasyTitle: "Mudah (Easy)",
+        levelEasySub: "Warna tab sama",
+        levelProTitle: "Pakar (Pro)",
+        levelProSub: "Warna berbeza",
+        sessionLabel: "Bilangan Soalan",
+        sessionSub: "3–4 huruf setiap soalan",
+        sessionFree: "Bebas",
+        studentNameLabel: "Nama Murid:",
+        studentNameSub: "Untuk pujian & rekod",
+        studentNamePlaceholder: "cth: Adam / Zara",
+        familyCodeLabel: "Kod Keluarga (Pilihan):",
+        familyCodeSub: "Boleh dikosongkan",
+        dashBtnLabel: "Papan Pemuka Keluarga",
+        dashBtnSub: "Lihat Rekod",
+        playBtn: "Mula Main!",
+        howToPlayBtn: "Cara Main",
+        instrTitle: "Cara Main",
+        instrDesc: "Tarik huruf di sebelah kiri ke huruf yang sama di sebelah kanan!",
+        instrStartBtn: "Faham, Jom Mula!",
+        gameBack: "Keluar",
+        praiseGood: "Bagusnya!",
+        praiseAwesome: "Hebat!",
+        praiseTryAgain: "Cuba lagi!",
+        resultTitle: "Tahniah, Hebat!",
+        resultSub: "Semua soalan berjaya diselesaikan dengan cemerlang!",
+        resultScore: "Skor",
+        resultQuestions: "Soalan",
+        resultMatched: "Huruf",
+        playAgainBtn: "Main Lagi",
+        backHomeBtn: "Kembali ke Menu",
+        dashTitle: "Papan Pemuka Keluarga",
+        dashBack: "Kembali",
+        dashStudent: "Profil Murid",
+        dashFamily: "Kod Keluarga",
+        dashNotSet: "Belum diisi",
+        dashStats: "Statistik Pembelajaran",
+        dashGames: "Permainan Dimainkan",
+        dashBest: "Skor Terbaik",
+        dashQuestions: "Soalan Dijawab",
+        dashCorrect: "Huruf Dipadankan",
+        dashAccuracy: "Ketepatan Padanan",
+        dashRecent: "Aktiviti Terkini",
+        dashEmpty: "Belum ada rekod permainan. Jom mula bermain!"
+      },
+      en: {
+        gameTitle: "Letter Match",
+        gameSubtitle: "Drag and connect matching letters in the magic garden!",
+        mascotHi: "Hi Friend!",
+        modeLabel: "Matching Mode",
+        modeUpperUpper: "Upper-Upper",
+        modeLowerLower: "Lower-Lower",
+        modeUpperLower: "Upper-Lower",
+        modeMixedTitle: "★ Mix",
+        modeMixedSub: "All Letters",
+        modeMixed: "All Letters",
+        levelLabel: "Difficulty Level",
+        levelEasyTitle: "Easy",
+        levelEasySub: "Same tab color",
+        levelProTitle: "Pro",
+        levelProSub: "Different colors",
+        sessionLabel: "Number of Questions",
+        sessionSub: "3–4 letters per question",
+        sessionFree: "Free",
+        studentNameLabel: "Student Name:",
+        studentNameSub: "For praise & records",
+        studentNamePlaceholder: "e.g., Adam / Zara",
+        familyCodeLabel: "Family Code (Optional):",
+        familyCodeSub: "Can be left blank",
+        dashBtnLabel: "Family Dashboard",
+        dashBtnSub: "View Records",
+        playBtn: "Play Now!",
+        howToPlayBtn: "How to Play",
+        instrTitle: "How to Play",
+        instrDesc: "Drag the letter on the left to its match on the right!",
+        instrStartBtn: "Got it, Let's Play!",
+        gameBack: "Exit",
+        praiseGood: "Good Job!",
+        praiseAwesome: "Awesome!",
+        praiseTryAgain: "Try again!",
+        resultTitle: "Great Job, Well Done!",
+        resultSub: "All questions completed with flying colors!",
+        resultScore: "Score",
+        resultQuestions: "Questions",
+        resultMatched: "Letters",
+        playAgainBtn: "Play Again",
+        backHomeBtn: "Back to Menu",
+        dashTitle: "Family Dashboard",
+        dashBack: "Back",
+        dashStudent: "Student Profile",
+        dashFamily: "Family Code",
+        dashNotSet: "Not set",
+        dashStats: "Learning Statistics",
+        dashGames: "Games Played",
+        dashBest: "Best Score",
+        dashQuestions: "Questions Answered",
+        dashCorrect: "Letters Matched",
+        dashAccuracy: "Match Accuracy",
+        dashRecent: "Recent Activity",
+        dashEmpty: "No game records yet. Let's start playing!"
+      }
+    };
+
+    // LOCALSTORAGE KEYS
+    const STORAGE_KEYS = {
+      LANG: 'kinderklub_padankanhuruf_lang',
+      STUDENT_NAME: 'kinderklub_padankanhuruf_studentname',
+      FAMILY_CODE: 'kinderklub_padankanhuruf_familycode',
+      MODE: 'kinderklub_padankanhuruf_mode',
+      DIFFICULTY: 'kinderklub_padankanhuruf_difficulty',
+      QUESTIONS_COUNT: 'kinderklub_padankanhuruf_questions_count',
+      RECORDS: 'kinderklub_padankanhuruf_sessions'
+    };
+
+    // 100% SOLID SPRINKLES COLOR PALETTE (ZERO TRANSPARENCY)
+    const SPRINKLES_PALETTE = [
+      { bg: '#e2c1f3', border: '#b987db', shadow: '#9d6ec0', text: '#4a154b', line: '#9d6ec0' }, // Lilac
+      { bg: '#f5e45f', border: '#d8c228', shadow: '#bba416', text: '#5c4800', line: '#d8c228' }, // Yellow
+      { bg: '#00c69e', border: '#009778', shadow: '#00755d', text: '#ffffff', line: '#009778' }, // Mint Teal
+      { bg: '#fd7a39', border: '#d95311', shadow: '#b34007', text: '#ffffff', line: '#d95311' }, // Orange
+      { bg: '#07bdff', border: '#0093ca', shadow: '#00729e', text: '#ffffff', line: '#0093ca' }, // Cyan Blue
+      { bg: '#fe51b0', border: '#d62486', shadow: '#ad1065', text: '#ffffff', line: '#d62486' }  // Pink
+    ];
+
+    const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+    // APPLICATION STATE
+    const AppState = {
+      lang: 'ms',
+      studentName: '',
+      familyCode: '',
+      mode: 'upper-upper',
+      difficulty: 'easy',       // 'easy' (same color) or 'pro' (different color)
+      totalQuestions: 5,        // 5, 10, 20, or Infinity (Bebas)
+      currentQuestionNum: 1,    // 1 to totalQuestions
+      totalLettersMatched: 0,   // Total letters successfully connected
+      sessionAttempts: 0,       // Total attempts (for accuracy)
+      score: 0,
+      currentRoundPairs: [],    // 3 or 4 pairs on screen
+      matchedInCurrentRound: 0,
+      isDragging: false,
+      dragSourceTile: null,
+      soundEnabled: true
+    };
+
+    // WEB AUDIO ENGINE
+    const AudioEngine = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume().catch(() => {});
+        }
+      },
+      playTone(freq, type, duration, gainVal = 0.15) {
+        if (!AppState.soundEnabled) return;
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {}
+      },
+      playPop() { this.playTone(480, 'sine', 0.08, 0.12); },
+      playSuccess() {
+        this.playTone(523.25, 'triangle', 0.12, 0.15);
+        setTimeout(() => this.playTone(659.25, 'triangle', 0.14, 0.15), 90);
+        setTimeout(() => this.playTone(783.99, 'triangle', 0.22, 0.18), 180);
+      },
+      playRoundWin() {
+        this.playTone(587.33, 'triangle', 0.12, 0.15);
+        setTimeout(() => this.playTone(739.99, 'triangle', 0.14, 0.16), 110);
+        setTimeout(() => this.playTone(880.00, 'triangle', 0.25, 0.18), 220);
+      },
+      playGentleError() {
+        this.playTone(280, 'sine', 0.15, 0.1);
+        setTimeout(() => this.playTone(240, 'sine', 0.08), 110);
+      },
+      playFanfare() {
+        const notes = [523.25, 659.25, 783.99, 1046.5];
+        notes.forEach((f, i) => {
+          setTimeout(() => this.playTone(f, 'triangle', 0.25, 0.2), i * 140);
+        });
+      }
+    };
+
+    // UTILITIES
+    function shuffle(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function savePreference(key, value) {
+      try { localStorage.setItem(key, value); } catch (e) {}
+    }
+
+    // LOCAL STORAGE LOAD
+    function loadSavedPreferences() {
+      try {
+        const savedLang = localStorage.getItem(STORAGE_KEYS.LANG);
+        if (savedLang === 'en' || savedLang === 'ms') AppState.lang = savedLang;
+
+        const savedName = localStorage.getItem(STORAGE_KEYS.STUDENT_NAME);
+        if (savedName) {
+          AppState.studentName = savedName;
+          const input = document.getElementById('inputStudentName');
+          if (input) input.value = savedName;
+        }
+
+        const savedCode = localStorage.getItem(STORAGE_KEYS.FAMILY_CODE);
+        if (savedCode) {
+          AppState.familyCode = savedCode;
+          const codeInput = document.getElementById('inputFamilyCode');
+          if (codeInput) {
+            codeInput.value = savedCode;
+            document.getElementById('btnClearFamilyCode').classList.remove('hidden');
+          }
+        }
+
+        const savedMode = localStorage.getItem(STORAGE_KEYS.MODE);
+        if (savedMode) AppState.mode = savedMode;
+
+        const savedDiff = localStorage.getItem(STORAGE_KEYS.DIFFICULTY);
+        if (savedDiff) AppState.difficulty = savedDiff;
+
+        const savedQCount = localStorage.getItem(STORAGE_KEYS.QUESTIONS_COUNT);
+        if (savedQCount) {
+          AppState.totalQuestions = savedQCount === 'free' ? Infinity : parseInt(savedQCount, 10);
+        }
+      } catch (e) {}
+    }
+
+    // LOCALIZATION
+    window.setLanguage = function(lang) {
+      if (lang !== 'ms' && lang !== 'en') return;
+      AppState.lang = lang;
+      savePreference(STORAGE_KEYS.LANG, lang);
+      AudioEngine.playPop();
+      applyLocalization();
+    };
+
+    function applyLocalization() {
+      const t = LOCALES[AppState.lang];
+
+      // Update [BM | EN] Active Button
+      const btnBM = document.getElementById('btnLangBM');
+      const btnEN = document.getElementById('btnLangEN');
+      if (AppState.lang === 'ms') {
+        btnBM.className = "px-2.5 py-1 text-xs font-black rounded-xl transition-all bg-amber-400 text-amber-950 shadow-sm";
+        btnEN.className = "px-2.5 py-1 text-xs font-black rounded-xl transition-all text-slate-600 hover:text-indigo-900";
+      } else {
+        btnEN.className = "px-2.5 py-1 text-xs font-black rounded-xl transition-all bg-amber-400 text-amber-950 shadow-sm";
+        btnBM.className = "px-2.5 py-1 text-xs font-black rounded-xl transition-all text-slate-600 hover:text-indigo-900";
+      }
+
+      // Home Screen Texts
+      document.getElementById('txtTitle').innerText = t.gameTitle;
+      document.getElementById('txtSubtitle').innerText = t.gameSubtitle;
+      document.getElementById('mascotGreeting').innerText = t.mascotHi;
+      document.getElementById('lblMode').innerText = t.modeLabel;
+      document.getElementById('lblLevel').innerText = t.levelLabel;
+      document.getElementById('lblSession').innerText = t.sessionLabel;
+      document.getElementById('lblSessionSub').innerText = t.sessionSub;
+      document.getElementById('lblStudentName').innerHTML = `<span class="text-amber-500">&#9733;</span> ${t.studentNameLabel}`;
+      document.getElementById('subStudentName').innerText = t.studentNameSub;
+      document.getElementById('inputStudentName').placeholder = t.studentNamePlaceholder;
+      document.getElementById('lblFamilyCode').innerText = t.familyCodeLabel;
+      document.getElementById('subFamilyCode').innerText = t.familyCodeSub;
+      document.getElementById('txtDashboardBtnLabel').innerText = t.dashBtnLabel;
+      document.getElementById('txtDashboardBtnSub').innerText = t.dashBtnSub;
+      document.getElementById('txtPlayBtn').innerText = t.playBtn;
+      document.getElementById('txtHowToPlayBtn').innerText = t.howToPlayBtn;
+
+      // Data attributes
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) el.innerText = t[key];
+      });
+
+      // Tutorial Screen Texts
+      document.getElementById('txtInstrTitle').innerText = t.instrTitle;
+      document.getElementById('txtInstrDesc').innerText = t.instrDesc;
+      document.getElementById('txtInstrStartBtn').innerText = t.instrStartBtn;
+
+      // Gameplay & Result Texts
+      document.getElementById('txtGameBack').innerText = t.gameBack;
+      document.getElementById('txtResultTitle').innerText = AppState.studentName ? `${t.resultTitle}, ${AppState.studentName}!` : t.resultTitle;
+      document.getElementById('txtResultSub').innerText = t.resultSub;
+      document.getElementById('txtResultScoreLabel').innerText = t.resultScore;
+      document.getElementById('txtResultQuestionsLabel').innerText = t.resultQuestions;
+      document.getElementById('txtResultMatchedLabel').innerText = t.resultMatched;
+      document.getElementById('txtPlayAgainBtn').innerText = t.playAgainBtn;
+      document.getElementById('txtBackHomeBtn').innerText = t.backHomeBtn;
+
+      // Dashboard Texts
+      document.getElementById('txtDashHeader').innerHTML = `<span>&#128202;</span> ${t.dashTitle}`;
+      document.getElementById('txtDashBack').innerText = t.dashBack;
+      document.getElementById('lblDashStudent').innerText = t.dashStudent;
+      document.getElementById('lblDashFamily').innerText = t.dashFamily;
+      document.getElementById('lblDashStats').innerText = t.dashStats;
+      document.getElementById('lblDashGames').innerText = t.dashGames;
+      document.getElementById('lblDashBest').innerText = t.dashBest;
+      document.getElementById('lblDashQuestions').innerText = t.dashQuestions;
+      document.getElementById('lblDashCorrect').innerText = t.dashCorrect;
+      document.getElementById('lblDashAccuracy').innerText = t.dashAccuracy;
+      document.getElementById('lblDashRecent').innerText = t.dashRecent;
+
+      updateProgressDisplay();
+      updateDashboardDisplay();
+      updateActiveButtonUI();
+    }
+
+    // STRICT SCREEN NAVIGATION
+    window.showScreen = function(screenId) {
+      const screens = ['screenHome', 'screenInstruction', 'screenGame', 'screenResult', 'screenDashboard'];
+      screens.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.classList.remove('active-screen');
+          el.style.display = 'none';
+        }
+      });
+      const target = document.getElementById(screenId);
+      if (target) {
+        target.classList.add('active-screen');
+        target.style.display = 'flex';
+      }
+      window.scrollTo(0, 0);
+    };
+
+    window.showInstruction = function() {
+      AudioEngine.playPop();
+      showScreen('screenInstruction');
+    };
+
+    window.showDashboard = function() {
+      AudioEngine.playPop();
+      updateDashboardDisplay();
+      showScreen('screenDashboard');
+    };
+
+    // DIRECT & RELIABLE EXIT TO MENU
+    window.exitGameToHome = function() {
+      AudioEngine.playPop();
+      const liveLine = document.getElementById('liveDragLine');
+      if (liveLine) liveLine.classList.add('hidden');
+      AppState.isDragging = false;
+      AppState.dragSourceTile = null;
+      showScreen('screenHome');
+    };
+
+    window.toggleAudio = function() {
+      AppState.soundEnabled = !AppState.soundEnabled;
+      const onIcon = document.getElementById('iconSoundOn');
+      const offIcon = document.getElementById('iconSoundOff');
+      if (AppState.soundEnabled) {
+        onIcon.classList.remove('hidden');
+        offIcon.classList.add('hidden');
+        AudioEngine.playPop();
+      } else {
+        onIcon.classList.add('hidden');
+        offIcon.classList.remove('hidden');
+      }
+    };
+
+    // PROGRESS DISPLAY UPDATE (SHOWING QUESTION NUMBER)
+    function updateProgressDisplay() {
+      const el = document.getElementById('txtProgressVal');
+      if (!el) return;
+      const isBM = AppState.lang === 'ms';
+      const qWord = isBM ? 'Soalan' : 'Question';
+      if (AppState.totalQuestions === Infinity) {
+        const freeLabel = isBM ? 'Bebas' : 'Free';
+        el.innerText = `${qWord} ${AppState.currentQuestionNum} (${freeLabel})`;
+      } else {
+        el.innerText = `${qWord} ${AppState.currentQuestionNum} / ${AppState.totalQuestions}`;
+      }
+    }
+
+    // START GAMEPLAY SESSION
+    window.startGame = function() {
+      AudioEngine.playPop();
+      AppState.score = 0;
+      AppState.currentQuestionNum = 1;
+      AppState.totalLettersMatched = 0;
+      AppState.sessionAttempts = 0;
+      
+      document.getElementById('txtScoreVal').innerText = '0';
+      updateProgressDisplay();
+      
+      showScreen('screenGame');
+      loadQuestionRound();
+    };
+
+    // GENERATE 3 OR 4 PAIRS FOR THE QUESTION
+    function generateQuestionPairs() {
+      // Choose 3 or 4 pairs per question for optimal preschool focus & spacious layout
+      const pairsCount = (Math.random() > 0.5) ? 3 : 4;
+      const shuffledAlphabet = shuffle(ALPHABET);
+      const chosenLetters = shuffledAlphabet.slice(0, pairsCount);
+      const shuffledPalettes = shuffle(SPRINKLES_PALETTE);
+
+      return chosenLetters.map((char, idx) => {
+        let leftDisplay = char;
+        let rightDisplay = char;
+
+        if (AppState.mode === 'upper-upper') {
+          leftDisplay = char;
+          rightDisplay = char;
+        } else if (AppState.mode === 'lower-lower') {
+          leftDisplay = char.toLowerCase();
+          rightDisplay = char.toLowerCase();
+        } else if (AppState.mode === 'upper-lower') {
+          leftDisplay = char.toUpperCase();
+          rightDisplay = char.toLowerCase();
+        } else {
+          // Mixed Mode
+          leftDisplay = Math.random() > 0.5 ? char.toUpperCase() : char.toLowerCase();
+          rightDisplay = Math.random() > 0.5 ? char.toUpperCase() : char.toLowerCase();
+        }
+
+        // TAHAP KESUKARAN (EASY vs PRO)
+        const leftPal = shuffledPalettes[idx % shuffledPalettes.length];
+        let rightPal;
+
+        if (AppState.difficulty === 'easy') {
+          // TAHAP MUDAH: Warna tab SAMA untuk pasangan huruf yang sama
+          rightPal = leftPal;
+        } else {
+          // TAHAP PAKAR (PRO): Warna tab BERBEZA untuk pasangan huruf yang sama
+          const otherPalettes = SPRINKLES_PALETTE.filter(p => p.bg !== leftPal.bg);
+          rightPal = otherPalettes[(idx + 1) % otherPalettes.length];
+        }
+
+        return {
+          id: 'pair_' + char + '_' + idx + '_' + Date.now(),
+          baseChar: char,
+          leftChar: leftDisplay,
+          rightChar: rightDisplay,
+          leftPalette: leftPal,
+          rightPalette: rightPal,
+          matched: false
+        };
+      });
+    }
+
+    function loadQuestionRound() {
+      AppState.currentRoundPairs = generateQuestionPairs();
+      AppState.matchedInCurrentRound = 0;
+      clearPermanentLines();
+      updateProgressDisplay();
+      renderPlayfield();
+    }
+
+    // CREATE ALMOST-SQUARE 100% SOLID SPRINKLES LETTER TILE
+    function createLetterTile(pair, side, totalCount = 3) {
+      const tile = document.createElement('div');
+      
+      // ALMOST SQUARE SHAPE: Chunky, spacious block with clear vertical breathing room
+      const sizeClasses = (totalCount === 4)
+        ? 'w-full aspect-[1/0.9] max-w-[110px] min-h-[72px] max-h-[86px]'
+        : 'w-full aspect-[1/0.92] max-w-[120px] min-h-[82px] max-h-[98px]';
+
+      tile.className = `letter-tile select-none relative ${sizeClasses} rounded-3xl border-4 flex items-center justify-center cursor-pointer shadow-md my-auto`;
+      
+      const currentPalette = (side === 'left') ? pair.leftPalette : pair.rightPalette;
+
+      tile.style.backgroundColor = currentPalette.bg;
+      tile.style.borderColor = currentPalette.border;
+      tile.style.boxShadow = `0 6px 0 ${currentPalette.shadow}, 0 10px 16px -2px rgba(0, 0, 0, 0.18)`;
+      tile.style.opacity = '1';
+
+      tile.dataset.side = side;
+      tile.dataset.baseChar = pair.baseChar;
+      tile.dataset.pairId = pair.id;
+
+      // Letter Display (Big, chunky, friendly font)
+      const charSpan = document.createElement('span');
+      charSpan.className = 'font-black text-3xl sm:text-4xl pointer-events-none select-none';
+      charSpan.style.color = currentPalette.text;
+      if (currentPalette.text === '#ffffff') {
+        charSpan.style.textShadow = '0 2px 4px rgba(0,0,0,0.22)';
+      }
+      charSpan.innerText = side === 'left' ? pair.leftChar : pair.rightChar;
+      tile.appendChild(charSpan);
+
+      // Connection Anchor Dot (Positioned exactly at vertical middle)
+      const anchorDot = document.createElement('div');
+      anchorDot.className = `absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 pointer-events-none shadow-sm flex items-center justify-center ${side === 'left' ? '-right-2' : '-left-2'}`;
+      anchorDot.style.borderColor = currentPalette.border;
+      
+      const innerDot = document.createElement('div');
+      innerDot.className = 'w-1.5 h-1.5 rounded-full';
+      innerDot.style.backgroundColor = currentPalette.line;
+      anchorDot.appendChild(innerDot);
+      tile.appendChild(anchorDot);
+
+      tile.addEventListener('pointerdown', handlePointerDown);
+
+      return tile;
+    }
+
+    function renderPlayfield() {
+      const colLeft = document.getElementById('colLeft');
+      const colRight = document.getElementById('colRight');
+      colLeft.innerHTML = '';
+      colRight.innerHTML = '';
+
+      const totalCount = AppState.currentRoundPairs.length;
+      const leftPairs = [...AppState.currentRoundPairs];
+      const rightPairs = shuffle([...AppState.currentRoundPairs]);
+
+      leftPairs.forEach(p => colLeft.appendChild(createLetterTile(p, 'left', totalCount)));
+      rightPairs.forEach(p => colRight.appendChild(createLetterTile(p, 'right', totalCount)));
+    }
+
+    // DRAG-TO-CONNECT INTERACTION WITH POINTER EVENTS
+    function getAnchorCenter(tile, side) {
+      const playfield = document.getElementById('playfieldContainer');
+      const pRect = playfield.getBoundingClientRect();
+      const tRect = tile.getBoundingClientRect();
+
+      const x = (side === 'left') ? (tRect.right - pRect.left) : (tRect.left - pRect.left);
+      const y = (tRect.top + tRect.height / 2) - pRect.top;
+      return { x, y };
+    }
+
+    function handlePointerDown(e) {
+      const tile = e.currentTarget;
+      if (tile.dataset.side !== 'left' || tile.classList.contains('matched')) return;
+
+      AppState.isDragging = true;
+      AppState.dragSourceTile = tile;
+      tile.classList.add('dragging');
+      tile.setPointerCapture(e.pointerId);
+
+      AudioEngine.playPop();
+
+      const playfield = document.getElementById('playfieldContainer');
+      const pRect = playfield.getBoundingClientRect();
+      const anchor = getAnchorCenter(tile, 'left');
+
+      const liveLine = document.getElementById('liveDragLine');
+      const pairData = AppState.currentRoundPairs.find(p => p.id === tile.dataset.pairId);
+      const dragStroke = pairData ? pairData.leftPalette.line : '#fd7a39';
+      liveLine.setAttribute('stroke', dragStroke);
+      liveLine.setAttribute('x1', anchor.x);
+      liveLine.setAttribute('y1', anchor.y);
+      liveLine.setAttribute('x2', e.clientX - pRect.left);
+      liveLine.setAttribute('y2', e.clientY - pRect.top);
+      liveLine.classList.remove('hidden');
+
+      tile.addEventListener('pointermove', handlePointerMove);
+      tile.addEventListener('pointerup', handlePointerUp);
+      tile.addEventListener('pointercancel', handlePointerUp);
+    }
+
+    function handlePointerMove(e) {
+      if (!AppState.isDragging || !AppState.dragSourceTile) return;
+      const playfield = document.getElementById('playfieldContainer');
+      const pRect = playfield.getBoundingClientRect();
+      const liveLine = document.getElementById('liveDragLine');
+      liveLine.setAttribute('x2', e.clientX - pRect.left);
+      liveLine.setAttribute('y2', e.clientY - pRect.top);
+    }
+
+    function handlePointerUp(e) {
+      if (!AppState.isDragging || !AppState.dragSourceTile) return;
+
+      const sourceTile = AppState.dragSourceTile;
+      sourceTile.classList.remove('dragging');
+      sourceTile.removeEventListener('pointermove', handlePointerMove);
+      sourceTile.removeEventListener('pointerup', handlePointerUp);
+      sourceTile.removeEventListener('pointercancel', handlePointerUp);
+
+      try { sourceTile.releasePointerCapture(e.pointerId); } catch (err) {}
+
+      document.getElementById('liveDragLine').classList.add('hidden');
+      AppState.isDragging = false;
+      AppState.dragSourceTile = null;
+
+      const targetEl = document.elementFromPoint(e.clientX, e.clientY);
+      const targetTile = targetEl ? targetEl.closest('.letter-tile') : null;
+
+      if (targetTile && targetTile.dataset.side === 'right' && !targetTile.classList.contains('matched')) {
+        evaluateMatch(sourceTile, targetTile);
+      } else {
+        showFeedback(LOCALES[AppState.lang].praiseTryAgain, 'bg-amber-100 text-amber-900 border-amber-300');
+      }
+    }
+
+    // MATCH EVALUATION
+    function evaluateMatch(sourceTile, targetTile) {
+      AppState.sessionAttempts++;
+
+      if (sourceTile.dataset.baseChar === targetTile.dataset.baseChar) {
+        // CORRECT MATCH
+        AudioEngine.playSuccess();
+        sourceTile.classList.add('matched');
+        targetTile.classList.add('matched');
+
+        createPermanentConnectionLine(sourceTile, targetTile);
+
+        AppState.score += 10;
+        AppState.totalLettersMatched++;
+        AppState.matchedInCurrentRound++;
+        document.getElementById('txtScoreVal').innerText = AppState.score;
+
+        const praiseWord = (AppState.totalLettersMatched % 2 === 0) 
+          ? LOCALES[AppState.lang].praiseAwesome 
+          : LOCALES[AppState.lang].praiseGood;
+        showFeedback(praiseWord + ' +10 ⭐', 'bg-emerald-100 text-emerald-900 border-emerald-300');
+
+        checkRoundCompletion();
+      } else {
+        // WRONG MATCH (GENTLE FEEDBACK - NO PUNISHMENT)
+        AudioEngine.playGentleError();
+        targetTile.classList.add('animate-bounce');
+        setTimeout(() => targetTile.classList.remove('animate-bounce'), 450);
+        showFeedback(LOCALES[AppState.lang].praiseTryAgain, 'bg-rose-100 text-rose-900 border-rose-300');
+      }
+    }
+
+    function createPermanentConnectionLine(sourceTile, targetTile) {
+      const permGroup = document.getElementById('permLinesGroup');
+      const start = getAnchorCenter(sourceTile, 'left');
+      const end = getAnchorCenter(targetTile, 'right');
+
+      const pairData = AppState.currentRoundPairs.find(p => p.baseChar === sourceTile.dataset.baseChar);
+      const strokeColor = pairData ? pairData.leftPalette.line : '#fe51b0';
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const dx = (end.x - start.x) * 0.45;
+      const d = `M ${start.x} ${start.y} C ${start.x + dx} ${start.y}, ${end.x - dx} ${end.y}, ${end.x} ${end.y}`;
+
+      path.setAttribute('d', d);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', strokeColor);
+      path.setAttribute('stroke-width', '7');
+      path.setAttribute('stroke-linecap', 'round');
+      path.setAttribute('class', 'permanent-line');
+      path.dataset.sourceChar = sourceTile.dataset.baseChar;
+
+      permGroup.appendChild(path);
+    }
+
+    function clearPermanentLines() {
+      const permGroup = document.getElementById('permLinesGroup');
+      if (permGroup) permGroup.innerHTML = '';
+    }
+
+    function updateAllConnectionLines() {
+      const permGroup = document.getElementById('permLinesGroup');
+      if (!permGroup) return;
+
+      const matchedPairs = document.querySelectorAll('#colLeft .letter-tile.matched');
+      permGroup.innerHTML = '';
+
+      matchedPairs.forEach(sourceTile => {
+        const char = sourceTile.dataset.baseChar;
+        const targetTile = document.querySelector(`#colRight .letter-tile[data-base-char="${char}"]`);
+        if (targetTile) {
+          createPermanentConnectionLine(sourceTile, targetTile);
+        }
+      });
+    }
+
+    window.addEventListener('resize', () => {
+      const gameScreen = document.getElementById('screenGame');
+      if (gameScreen && gameScreen.classList.contains('active-screen')) {
+        updateAllConnectionLines();
+      }
+    });
+
+    function showFeedback(text, colorClasses) {
+      const bubble = document.getElementById('feedbackBubble');
+      bubble.className = `transition-all transform duration-200 px-4 py-1.5 rounded-full font-black text-xs sm:text-sm shadow-md border-2 ${colorClasses} opacity-100 scale-105`;
+      bubble.innerText = text;
+
+      setTimeout(() => {
+        bubble.className = 'opacity-0 transition-all transform duration-200 px-4 py-1.5 rounded-full font-black text-xs sm:text-sm shadow-md bg-white border-2';
+      }, 1200);
+    }
+
+    // CHECK IF CURRENT QUESTION (ROUND) IS COMPLETE
+    function checkRoundCompletion() {
+      if (AppState.matchedInCurrentRound >= AppState.currentRoundPairs.length) {
+        AudioEngine.playRoundWin();
+        const finishRoundMsg = AppState.lang === 'ms' ? 'Soalan Selesai! Hebat! 🌟' : 'Question Complete! Awesome! 🌟';
+        showFeedback(finishRoundMsg, 'bg-emerald-500 text-white border-emerald-600');
+
+        setTimeout(() => {
+          if (AppState.totalQuestions !== Infinity && AppState.currentQuestionNum >= AppState.totalQuestions) {
+            // Full session of chosen questions completed!
+            finishGameSession();
+          } else {
+            // Move to next question!
+            AppState.currentQuestionNum++;
+            loadQuestionRound();
+          }
+        }, 750);
+      }
+    }
+
+    function finishGameSession() {
+      AudioEngine.playFanfare();
+      saveCompletedSession();
+      
+      document.getElementById('finalScoreVal').innerText = AppState.score;
+      document.getElementById('finalQuestionsVal').innerText = `${AppState.totalQuestions} / ${AppState.totalQuestions}`;
+      document.getElementById('finalMatchedVal').innerText = AppState.totalLettersMatched;
+      
+      applyLocalization();
+      showScreen('screenResult');
+    }
+
+    // DASHBOARD & STORAGE MANAGEMENT
+    function saveCompletedSession() {
+      try {
+        const record = {
+          game: "Padankan Huruf",
+          questions: AppState.totalQuestions === Infinity ? AppState.currentQuestionNum : AppState.totalQuestions,
+          correct: AppState.totalLettersMatched,
+          score: AppState.score,
+          attempts: AppState.sessionAttempts,
+          timestamp: Date.now()
+        };
+
+        const existingRaw = localStorage.getItem(STORAGE_KEYS.RECORDS);
+        const records = existingRaw ? JSON.parse(existingRaw) : [];
+        records.unshift(record);
+        if (records.length > 25) records.pop();
+
+        localStorage.setItem(STORAGE_KEYS.RECORDS, JSON.stringify(records));
+      } catch (e) {}
+    }
+
+    function updateDashboardDisplay() {
+      const t = LOCALES[AppState.lang];
+
+      // Student Profile & Family Code
+      document.getElementById('valDashStudent').innerText = AppState.studentName || t.dashNotSet;
+      document.getElementById('valDashFamily').innerText = AppState.familyCode || t.dashNotSet;
+
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.RECORDS);
+        const records = raw ? JSON.parse(raw) : [];
+
+        if (!Array.isArray(records) || records.length === 0) {
+          document.getElementById('valDashGames').innerText = '0';
+          document.getElementById('valDashBest').innerText = '0';
+          document.getElementById('valDashQuestions').innerText = '0';
+          document.getElementById('valDashCorrect').innerText = '0';
+          document.getElementById('valDashAccuracy').innerText = '0%';
+          document.getElementById('barDashAccuracy').style.width = '0%';
+          document.getElementById('dashRecentList').innerHTML = `<p class="text-xs text-slate-400 py-4 text-center font-bold">${t.dashEmpty}</p>`;
+          return;
+        }
+
+        const totalGames = records.length;
+        let totalQuestions = 0;
+        let totalCorrect = 0;
+        let totalAttempts = 0;
+        let bestScore = 0;
+
+        records.forEach(r => {
+          totalQuestions += (r.questions || 0);
+          totalCorrect += (r.correct || 0);
+          totalAttempts += (r.attempts || r.correct || 0);
+          if (r.score && r.score > bestScore) bestScore = r.score;
+        });
+
+        const accuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 100;
+
+        document.getElementById('valDashGames').innerText = totalGames;
+        document.getElementById('valDashBest').innerText = bestScore;
+        document.getElementById('valDashQuestions').innerText = totalQuestions;
+        document.getElementById('valDashCorrect').innerText = totalCorrect;
+        document.getElementById('valDashAccuracy').innerText = accuracy + '%';
+        document.getElementById('barDashAccuracy').style.width = Math.min(100, accuracy) + '%';
+
+        // Render Recent Activity (up to 5 items)
+        const recentHtml = records.slice(0, 5).map(r => {
+          const qText = AppState.lang === 'ms' ? 'Soalan' : 'Questions';
+          const sText = AppState.lang === 'ms' ? 'Skor' : 'Score';
+          const dateStr = new Date(r.timestamp).toLocaleDateString();
+          return `
+            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
+              <span class="font-extrabold text-indigo-950">${r.questions || 0} ${qText} &bull; ${sText} ${r.score || 0}</span>
+              <span class="text-[10px] text-slate-400 font-bold">${dateStr}</span>
+            </div>
+          `;
+        }).join('');
+
+        document.getElementById('dashRecentList').innerHTML = recentHtml;
+
+      } catch (err) {
+        document.getElementById('dashRecentList').innerHTML = `<p class="text-xs text-slate-400 py-4 text-center font-bold">${t.dashEmpty}</p>`;
+      }
+    }
+
+    // SYNC ACTIVE BUTTON STATES WITH STABLE CSS CLASSES
+    function updateActiveButtonUI() {
+      // 1. Mode buttons
+      document.querySelectorAll('.mode-btn').forEach(b => {
+        if (b.dataset.mode === AppState.mode) {
+          b.classList.add('active');
+        } else {
+          b.classList.remove('active');
+        }
+      });
+
+      // 2. Level buttons
+      document.querySelectorAll('.level-btn').forEach(b => {
+        if (b.dataset.level === AppState.difficulty) {
+          b.classList.add('active');
+        } else {
+          b.classList.remove('active');
+        }
+      });
+
+      // 3. Question Count buttons (5, 10, 20, Bebas)
+      const currentQStr = AppState.totalQuestions === Infinity ? 'free' : String(AppState.totalQuestions);
+      document.querySelectorAll('.session-btn').forEach(b => {
+        if (b.dataset.count === currentQStr) {
+          b.classList.add('active');
+        } else {
+          b.classList.remove('active');
+        }
+      });
+    }
+
+    // EVENT LISTENERS INITIALIZATION
+    function initEvents() {
+      // Student Name Input
+      const inputName = document.getElementById('inputStudentName');
+      if (inputName) {
+        inputName.addEventListener('input', (e) => {
+          AppState.studentName = e.target.value.trim();
+          savePreference(STORAGE_KEYS.STUDENT_NAME, AppState.studentName);
+        });
+      }
+
+      // Family Code Input
+      const inputCode = document.getElementById('inputFamilyCode');
+      const btnClearCode = document.getElementById('btnClearFamilyCode');
+      if (inputCode && btnClearCode) {
+        inputCode.addEventListener('input', (e) => {
+          AppState.familyCode = e.target.value.trim().toUpperCase();
+          savePreference(STORAGE_KEYS.FAMILY_CODE, AppState.familyCode);
+          if (AppState.familyCode) {
+            btnClearCode.classList.remove('hidden');
+          } else {
+            btnClearCode.classList.add('hidden');
+          }
+        });
+
+        btnClearCode.addEventListener('click', () => {
+          inputCode.value = '';
+          AppState.familyCode = '';
+          savePreference(STORAGE_KEYS.FAMILY_CODE, '');
+          btnClearCode.classList.add('hidden');
+          AudioEngine.playPop();
+        });
+      }
+
+      // Mode Selector Buttons
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          AudioEngine.playPop();
+          AppState.mode = btn.dataset.mode;
+          savePreference(STORAGE_KEYS.MODE, AppState.mode);
+          updateActiveButtonUI();
+        });
+      });
+
+      // Level Selector Buttons (Easy vs Pro)
+      document.querySelectorAll('.level-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          AudioEngine.playPop();
+          AppState.difficulty = btn.dataset.level;
+          savePreference(STORAGE_KEYS.DIFFICULTY, AppState.difficulty);
+          updateActiveButtonUI();
+        });
+      });
+
+      // Question Count Buttons (5, 10, 20, free)
+      document.querySelectorAll('.session-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          AudioEngine.playPop();
+          const countVal = btn.dataset.count;
+          AppState.totalQuestions = countVal === 'free' ? Infinity : parseInt(countVal, 10);
+          savePreference(STORAGE_KEYS.QUESTIONS_COUNT, countVal);
+          updateActiveButtonUI();
+        });
+      });
+    }
+
+    // BOOTSTRAP APP ON LOAD
+    function initApp() {
+      loadSavedPreferences();
+      applyLocalization();
+      updateActiveButtonUI();
+      initEvents();
+      showScreen('screenHome');
+    }
+
+    // RUN WHEN DOM READY
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+      initApp();
+    }
+  </script>
+</body>
+</html>
